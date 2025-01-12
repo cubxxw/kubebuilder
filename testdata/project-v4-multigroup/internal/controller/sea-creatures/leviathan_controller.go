@@ -1,5 +1,5 @@
 /*
-Copyright 2023 The Kubernetes authors.
+Copyright 2025 The Kubernetes authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,9 +33,9 @@ type LeviathanReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=sea-creatures.testproject.org,resources=leviathans,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=sea-creatures.testproject.org,resources=leviathans/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=sea-creatures.testproject.org,resources=leviathans/finalizers,verbs=update
+// +kubebuilder:rbac:groups=sea-creatures.testproject.org,resources=leviathans,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=sea-creatures.testproject.org,resources=leviathans/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=sea-creatures.testproject.org,resources=leviathans/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -45,7 +45,7 @@ type LeviathanReconciler struct {
 // the user.
 //
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.16.2/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.4/pkg/reconcile
 func (r *LeviathanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
@@ -58,5 +58,6 @@ func (r *LeviathanReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 func (r *LeviathanReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&seacreaturesv1beta2.Leviathan{}).
+		Named("sea-creatures-leviathan").
 		Complete(r)
 }

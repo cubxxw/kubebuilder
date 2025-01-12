@@ -1,6 +1,15 @@
 
 # FAQ
 
+<aside class="note">
+<h1> Controller-Runtime FAQ </h1>
+
+Kubebuilder is developed on top of the [controller-runtime](https://github.com/kubernetes-sigs/controller-runtime)
+and [controller-tools](https://github.com/kubernetes-sigs/controller-tools) libraries. We recommend you also check
+the [Controller-Runtime FAQ page](https://github.com/kubernetes-sigs/controller-runtime/blob/main/FAQ.md).
+</aside>
+
+
 ## How does the value informed via the domain flag (i.e. `kubebuilder init --domain example.com`) when we init a project?
 
 After creating a project, usually you will want to extend the Kubernetes APIs and define new APIs which will be owned by your project. Therefore, the domain value is tracked in the [PROJECT][project-file-def] file which defines the config of your project and will be used as a domain to create the endpoints of your API(s). Please, ensure that you understand the [Groups and Versions and Kinds, oh my!][gvk].
@@ -24,7 +33,7 @@ In the `main.go` you can replace:
     }
     opts.BindFlags(flag.CommandLine)
     flag.Parse()
-    
+
     ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 ```
 with:
@@ -106,18 +115,48 @@ Your CRDs are generated using [controller-gen][controller-gen]. By using the opt
 
 ```shell
 
- .PHONY: manifests 
- manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects. 
-     # Note that the option maxDescLen=0 was added in the default scaffold in order to sort out the issue 
-     # Too long: must have at most 262144 bytes. By using kubectl apply to create / update resources an annotation 
-     # is created by K8s API to store the latest version of the resource ( kubectl.kubernetes.io/last-applied-configuration). 
-     # However, it has a size limit and if the CRD is too big with so many long descriptions as this one it will cause the failure. 
- 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:maxDescLen=0 webhook paths="./..." output:crd:artifacts:config=config/crd/bases 
+ .PHONY: manifests
+ manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
+     # Note that the option maxDescLen=0 was added in the default scaffold in order to sort out the issue
+     # Too long: must have at most 262144 bytes. By using kubectl apply to create / update resources an annotation
+     # is created by K8s API to store the latest version of the resource ( kubectl.kubernetes.io/last-applied-configuration).
+     # However, it has a size limit and if the CRD is too big with so many long descriptions as this one it will cause the failure.
+ 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd:maxDescLen=0 webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 ```
 **By re-design your APIs:**
 
 You can review the design of your APIs and see if it has not more specs than should be by hurting single responsibility principle for example. So that you might to re-design them.
 
+## How can I validate and parse fields in CRDs effectively?
+
+To enhance user experience, it is recommended to use [OpenAPI v3 schema](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#schemaObject) validation when writing your CRDs. However, this approach can sometimes require an additional parsing step.
+For example, consider this code
+```go
+type StructName struct {
+	// +kubebuilder:validation:Format=date-time
+	TimeField string `json:"timeField,omitempty"`
+}
+```
+
+### What happens in this scenario?
+
+- Users will receive an error notification from the Kubernetes API if they attempt to create a CRD with an invalid timeField value.
+- On the developer side, the string value needs to be parsed manually before use.
+
+### Is there a better approach?
+
+To provide both a better user experience and a streamlined developer experience, it is advisable to use predefined types like [`metav1.Time`](https://pkg.go.dev/k8s.io/apimachinery@v0.31.1/pkg/apis/meta/v1#Time)
+For example, consider this code
+```go
+type StructName struct {
+	TimeField metav1.Time `json:"timeField,omitempty"`
+}
+```
+
+### What happens in this scenario?
+
+- Users still receive error notifications from the Kubernetes API for invalid `timeField` values.
+- Developers can directly use the parsed TimeField in their code without additional parsing, reducing errors and improving efficiency.
 
 
 

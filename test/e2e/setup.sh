@@ -27,6 +27,7 @@ install_kind
 #   export KIND_CLUSTER=<kind cluster name>
 #   create_cluster <k8s version>
 function create_cluster {
+  echo "Getting kind config..."
   KIND_VERSION=$1
   : ${KIND_CLUSTER:?"KIND_CLUSTER must be set"}
   : ${1:?"k8s version must be set as arg 1"}
@@ -36,7 +37,10 @@ function create_cluster {
     if test -f $(dirname "$0")/kind-config-${version_prefix}.yaml; then
       kind_config=$(dirname "$0")/kind-config-${version_prefix}.yaml
     fi
+    echo "Creating cluster..."
     kind create cluster -v 4 --name $KIND_CLUSTER --retain --wait=1m --config ${kind_config} --image=kindest/node:$1
+    echo "Installing Calico..."
+    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
   fi
 }
 
@@ -56,45 +60,14 @@ function delete_cluster {
 function test_cluster {
   local flags="$@"
 
-  docker pull memcached:1.4.36-alpine
-  kind load docker-image --name $KIND_CLUSTER memcached:1.4.36-alpine
+  docker pull memcached:1.6.26-alpine3.19
+  kind load docker-image --name $KIND_CLUSTER memcached:1.6.26-alpine3.19
 
-  docker pull busybox:1.28
-  kind load docker-image --name $KIND_CLUSTER busybox:1.28
+  docker pull busybox:1.36.1
+  kind load docker-image --name $KIND_CLUSTER busybox:1.36.1
 
   go test $(dirname "$0")/grafana $flags -timeout 30m
   go test $(dirname "$0")/deployimage $flags -timeout 30m
   go test $(dirname "$0")/v4 $flags -timeout 30m
-  go test $(dirname "$0")/externalplugin $flags -timeout 30m
   go test $(dirname "$0")/alphagenerate $flags -timeout 30m
-}
-
-function build_sample_external_plugin {
-  # TODO: Dynamically set exteranl plugin destination based on OS platform
-  # EXTERNAL_PLUGIN_DESTINATION_PREFIX="${HOME}/Library/Application Support/kubebuilder/plugins"
-  # For Linux:
-  XDG_CONFIG_HOME="${HOME}/.config"
-  EXTERNAL_PLUGIN_DESTINATION_PREFIX="$XDG_CONFIG_HOME/kubebuilder/plugins"
-
-  PLUGIN_NAME="sampleexternalplugin"
-  PLUGIN_VERSION="v1"
-  EXTERNAL_PLUGIN_DESTINATION="${EXTERNAL_PLUGIN_DESTINATION_PREFIX}/${PLUGIN_NAME}/${PLUGIN_VERSION}"
-  EXTERNAL_PLUGIN_PATH="${EXTERNAL_PLUGIN_DESTINATION}/${PLUGIN_NAME}"
-
-  if [ -d "$EXTERNAL_PLUGIN_DESTINATION" ]; then
-    echo "$EXTERNAL_PLUGIN_DESTINATION does exist."
-    if [ -e "$EXTERNAL_PLUGIN_PATH" ]; then
-      echo "clean up old binary..."
-      rm "$EXTERNAL_PLUGIN_PATH"
-    fi
-  else
-      mkdir -p "$EXTERNAL_PLUGIN_DESTINATION"
-  fi
-
-  REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
-  SOURCE_DIR="${REPO_ROOT_DIR}/docs/book/src/simple-external-plugin-tutorial/testdata/sampleexternalplugin/v1"
-
-  cd $SOURCE_DIR && go build -o $PLUGIN_NAME && mv $PLUGIN_NAME "$EXTERNAL_PLUGIN_PATH"
-
-  cd $REPO_ROOT_DIR
 }

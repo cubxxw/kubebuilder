@@ -21,7 +21,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"sigs.k8s.io/kubebuilder/v3/pkg/cli/alpha"
+	"sigs.k8s.io/kubebuilder/v4/pkg/cli/alpha"
 )
 
 const (
@@ -35,7 +35,7 @@ var alphaCommands = []*cobra.Command{
 
 func newAlphaCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		//TODO: If we need to create alpha commands please add a new file for each command
+		// TODO: If we need to create alpha commands please add a new file for each command
 	}
 	return cmd
 }

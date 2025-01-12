@@ -33,7 +33,7 @@ sponsor you, just ping us on Slack :-)**
 
 ## Reviewers
 
-Reviewers are recongized as able to provide code reviews for parts of the
+Reviewers are recognized as able to provide code reviews for parts of the
 codebase, and are entered into the `reviewers` section of one or more
 `OWNERS` files.  You'll get auto-assigned reviews for your area of the
 codebase, and are generally expected to review for both correctness,
@@ -86,7 +86,7 @@ Things to look for:
 - Does it expose a new type from `k8s.io/XYZ`, and, if so, is it worth it?
   Is that piece well-designed?
 
-**For large changes, approvers are responsible for getting reasonble
+**For large changes, approvers are responsible for getting reasonable
 consensus**.  With the power to approve such changes comes the
 responsibility of ensuring that the project as a whole has time to discuss
 them.

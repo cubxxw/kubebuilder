@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+//nolint:dupl
 package rbac
 
 import (
+	"fmt"
 	"path/filepath"
+	"strings"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"sigs.k8s.io/kubebuilder/v4/pkg/machinery"
 )
 
 var _ machinery.Template = &CRDEditorRole{}
@@ -30,12 +33,14 @@ type CRDEditorRole struct {
 	machinery.MultiGroupMixin
 	machinery.ResourceMixin
 	machinery.ProjectNameMixin
+
+	RoleName string
 }
 
-// SetTemplateDefaults implements file.Template
+// SetTemplateDefaults implements machinery.Template
 func (f *CRDEditorRole) SetTemplateDefaults() error {
 	if f.Path == "" {
-		if f.MultiGroup {
+		if f.MultiGroup && f.Resource.Group != "" {
 			f.Path = filepath.Join("config", "rbac", "%[group]_%[kind]_editor_role.yaml")
 		} else {
 			f.Path = filepath.Join("config", "rbac", "%[kind]_editor_role.yaml")
@@ -44,23 +49,36 @@ func (f *CRDEditorRole) SetTemplateDefaults() error {
 	}
 	f.Path = f.Resource.Replacer().Replace(f.Path)
 
+	if f.RoleName == "" {
+		if f.MultiGroup && f.Resource.Group != "" {
+			f.RoleName = fmt.Sprintf("%s-%s-editor-role",
+				strings.ToLower(f.Resource.Group),
+				strings.ToLower(f.Resource.Kind))
+		} else {
+			f.RoleName = fmt.Sprintf("%s-editor-role",
+				strings.ToLower(f.Resource.Kind))
+		}
+	}
+
 	f.TemplateBody = crdRoleEditorTemplate
 
 	return nil
 }
 
-const crdRoleEditorTemplate = `# permissions for end users to edit {{ .Resource.Plural }}.
+const crdRoleEditorTemplate = `# This rule is not used by the project {{ .ProjectName }} itself.
+# It is provided to allow the cluster admin to help manage permissions for users.
+#
+# Grants permissions to create, update, and delete resources within the {{ .Resource.QualifiedGroup }}.
+# This role is intended for users who need to manage these resources
+# but should not control RBAC or manage permissions for others.
+
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: {{ lower .Resource.Kind }}-editor-role
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: {{ .ProjectName }}
-    app.kubernetes.io/part-of: {{ .ProjectName }}
+    app.kubernetes.io/name: {{ .ProjectName }}
     app.kubernetes.io/managed-by: kustomize
-  name: {{ lower .Resource.Kind }}-editor-role
+  name: {{ .RoleName }}
 rules:
 - apiGroups:
   - {{ .Resource.QualifiedGroup }}

@@ -8,7 +8,18 @@ Kubernetes API server, without kubelet, controller-manager or other components.
 Installing the binaries is as a simple as running `make envtest`. `envtest` will download the Kubernetes API server binaries to the `bin/` folder in your project
 by default. `make test` is the one-stop shop for downloading the binaries, setting up the test environment, and running the tests.
 
-The make targets require `bash` to run.
+
+You can refer to the Makefile of the Kubebuilder scaffold and observe that the envtest setup is consistently aligned across all controller-runtime releases. Starting from `release-0.19`, it is configured to automatically download the artefact from the correct location, **ensuring that kubebuilder users are not impacted.**
+
+```shell
+ENVTEST_K8S_VERSION = 1.31.0
+ENVTEST_VERSION ?= release-0.19
+...
+.PHONY: envtest
+envtest: $(ENVTEST) ## Download setup-envtest locally if necessary.
+$(ENVTEST): $(LOCALBIN)
+	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
+```
 
 ## Installation in Air Gapped/disconnected environments
 If you would like to download the tarball containing the binaries, to use in a disconnected environment you can use
@@ -25,7 +36,7 @@ make envtest
 Installing the binaries using `setup-envtest` stores the binary in OS specific locations, you can read more about them
 [here](https://github.com/kubernetes-sigs/controller-runtime/tree/master/tools/setup-envtest#where-does-it-put-all-those-binaries)
 ```sh
-./bin/setup-envtest use 1.21.2
+./bin/setup-envtest use 1.31.0
 ```
 
 ### Update the test make target
@@ -41,15 +52,6 @@ NOTE: The `ENVTEST_K8S_VERSION` needs to match the `setup-envtest` you downloade
 ```sh
 no such version (1.24.5) exists on disk for this architecture (darwin/amd64) -- try running `list -i` to see what's on disk
 ```
-
-## Kubernetes 1.20 and 1.21 binary issues
-
-There have been many reports of the `kube-apiserver` or `etcd` binary [hanging during cleanup][cr-1571]
-or misbehaving in other ways. We recommend using the 1.19.2 tools version to circumvent such issues,
-which do not seem to arise in 1.22+. This is likely NOT the cause of a `fork/exec: permission denied`
-or `fork/exec: not found` error, which is caused by improper tools installation.
-
-[cr-1571]:https://github.com/kubernetes-sigs/controller-runtime/issues/1571
 
 ## Writing tests
 
@@ -79,9 +81,9 @@ Logs from the test runs are prefixed with `test-env`.
 <aside class="note">
 <h1>Examples</h1>
 
-You can use the plugin [DeployImage](https://book.kubebuilder.io/plugins/deploy-image-plugin-v1-alpha.html) to check examples. This plugin allows users to scaffold API/Controllers to deploy and manage an Operand (image) on the cluster following the guidelines and best practices. It abstracts the complexities of achieving this goal while allowing users to customize the generated code.
+You can use the plugin [DeployImage](../plugins/available/deploy-image-plugin-v1-alpha.md) to check examples. This plugin allows users to scaffold API/Controllers to deploy and manage an Operand (image) on the cluster following the guidelines and best practices. It abstracts the complexities of achieving this goal while allowing users to customize the generated code.
 
-Therefore, you can check that a test using ENV TEST will be generated for the controller which has the purpose to ensure that the Deployment is created successfully. You can see an example of its code implementation under the `testdata` directory with the [DeployImage](https://book.kubebuilder.io/plugins/deploy-image-plugin-v1-alpha.html) samples [here](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/testdata/project-v3-with-deploy-image/controllers/busybox_controller_test.go).
+Therefore, you can check that a test using ENV TEST will be generated for the controller which has the purpose to ensure that the Deployment is created successfully. You can see an example of its code implementation under the `testdata` directory with the [DeployImage](../plugins/available/deploy-image-plugin-v1-alpha.md) samples [here](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/testdata/project-v4-with-plugins/controllers/busybox_controller_test.go).
 
 </aside>
 
@@ -97,8 +99,6 @@ Ie,
     ├── etcd
     ├── kube-apiserver
     └── kubectl
-
-1 directory, 3 files
 ```
 
 You can use environment variables and/or flags to specify the `kubectl`,`api-server` and `etcd` setup within your integration tests.
@@ -225,7 +225,7 @@ Following an example.
 
         By("installing the cert-manager")
         Expect(utils.InstallCertManager()).To(Succeed())
-    }
+    })
 
     // You can also remove them after the tests::
     AfterEach(func() {
@@ -248,7 +248,7 @@ const (
 )
 
 func warnError(err error) {
-	fmt.Fprintf(GinkgoWriter, "warning: %v\n", err)
+	_, _ = fmt.Fprintf(GinkgoWriter, "warning: %v\n", err)
 }
 
 // InstallPrometheusOperator installs the prometheus Operator to be used to export the enabled metrics.
@@ -296,7 +296,7 @@ func InstallCertManager() error {
 	return err
 }
 
-// LoadImageToKindCluster loads a local docker image to the kind cluster
+// LoadImageToKindClusterWithName loads a local docker image to the kind cluster
 func LoadImageToKindClusterWithName(name string) error {
 	cluster := "kind"
 	if v, ok := os.LookupEnv("KIND_CLUSTER"); ok {
@@ -318,9 +318,17 @@ testEnv = &envtest.Environment{
 }
 ```
 
+<aside class="note">
+<h1>Setup ENV TEST tool</h1>
+To know more about the tooling used to configure ENVTEST which is used in the setup-envtest target in the Makefile
+of the projects build with Kubebuilder see the [README][readme]
+of its tooling.
+</aside>
+
 [metrics]: https://book.kubebuilder.io/reference/metrics.html
 [envtest]: https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/envtest
 [setup-envtest]: https://pkg.go.dev/sigs.k8s.io/controller-runtime/tools/setup-envtest
 [cert-manager]: https://book.kubebuilder.io/cronjob-tutorial/cert-manager.html
-[sdk-e2e-sample-example]: https://github.com/operator-framework/operator-sdk/tree/master/testdata/go/v3/memcached-operator/test/e2e
+[sdk-e2e-sample-example]: https://github.com/operator-framework/operator-sdk/tree/master/testdata/go/v4/memcached-operator/test/e2e
 [sdk]: https://github.com/operator-framework/operator-sdk
+[readme]: https://github.com/kubernetes-sigs/controller-runtime/blob/main/tools/setup-envtest/README.md

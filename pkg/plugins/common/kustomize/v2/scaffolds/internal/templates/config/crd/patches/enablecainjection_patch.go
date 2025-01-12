@@ -19,7 +19,7 @@ package patches
 import (
 	"path/filepath"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"sigs.k8s.io/kubebuilder/v4/pkg/machinery"
 )
 
 var _ machinery.Template = &EnableCAInjectionPatch{}
@@ -31,10 +31,10 @@ type EnableCAInjectionPatch struct {
 	machinery.ResourceMixin
 }
 
-// SetTemplateDefaults implements file.Template
+// SetTemplateDefaults implements machinery.Template
 func (f *EnableCAInjectionPatch) SetTemplateDefaults() error {
 	if f.Path == "" {
-		if f.MultiGroup {
+		if f.MultiGroup && f.Resource.Group != "" {
 			f.Path = filepath.Join("config", "crd", "patches", "cainjection_in_%[group]_%[plural].yaml")
 		} else {
 			f.Path = filepath.Join("config", "crd", "patches", "cainjection_in_%[plural].yaml")
@@ -47,12 +47,8 @@ func (f *EnableCAInjectionPatch) SetTemplateDefaults() error {
 	return nil
 }
 
-//nolint:lll
 const enableCAInjectionPatchTemplate = `# The following patch adds a directive for certmanager to inject CA into the CRD
-{{- if ne .Resource.API.CRDVersion "v1" }}
-# CRD conversion requires k8s 1.13 or later.
-{{- end }}
-apiVersion: apiextensions.k8s.io/{{ .Resource.API.CRDVersion }}
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:

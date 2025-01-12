@@ -1,9 +1,12 @@
 name: APIDiff
 
-# Trigger the workflow on pull requests and direct pushes to any branch
 on:
   push:
+    paths-ignore:
+      - '**/*.md'
   pull_request:
+    paths-ignore:
+      - '**/*.md'
 
 jobs:
   go-apidiff:
@@ -17,11 +20,11 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "~1.20"
+          go-version-file: go.mod
       - name: Execute go-apidiff
-        uses: joelanford/go-apidiff@v0.7.0
+        uses: joelanford/go-apidiff@v0.8.2
         with:
           compare-imports: true
           print-compatible: true

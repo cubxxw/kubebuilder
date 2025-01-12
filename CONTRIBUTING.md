@@ -10,7 +10,7 @@ Please see https://git.k8s.io/community/CLA.md for more info.
 
 ## Prerequisites
 
-- [go](https://golang.org/dl/) version v1.20+.
+- [go](https://golang.org/dl/) version v1.23+.
 - [docker](https://docs.docker.com/install/) version 17.03+.
 - [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) version v1.11.3+.
 - [kustomize](https://github.com/kubernetes-sigs/kustomize/blob/master/site/content/en/docs/Getting%20started/installation.md) v3.1.0+
@@ -23,6 +23,13 @@ Please see https://git.k8s.io/community/CLA.md for more info.
 1. If your proposed change is accepted, and you haven't already done so, sign a Contributor License Agreement (see details above).
 1. Fork the desired repo, develop and test your code changes.
 1. Submit a pull request.
+
+In addition to the above steps, we adhere to the following best practices to maintain consistency and efficiency in our project:
+
+- **Single Commit per PR:** Each Pull Request (PR) should contain only one commit. This approach simplifies tracking changes and makes the history more readable.
+- **One Issue per PR:** Each PR should address a single specific issue or need. This helps in streamlining our workflow and makes it easier to identify and resolve problems such as revert the changes if required.
+
+For more detailed guidelines, refer to the [Kubernetes Contributor Guide][k8s-contrubutiong-guide].
 
 ## How to build kubebuilder locally
 
@@ -46,7 +53,7 @@ $ git clone git@github.com:<user>/kubebuilder.git $GOPATH/src/sigs.k8s.io/kubebu
 
 - e2e tests use [`kind`][kind] and [`setup-envtest`][setup-envtest]. If you want to bring your own binaries, place them in `$(go env GOPATH)/bin`.
 
-**IMPORTANT:** The `make generate` is very helpful. By using it, you can check if good part of the commands still working successfully after the changes. Also, note that its usage is a pre-requirement to submit a PR.
+**IMPORTANT:** The `make generate` is very helpful. By using it, you can check if good part of the commands still working successfully after the changes. Also, note that its usage is a prerequisite to submit a PR.
 
 Following the targets that can be used to test your changes locally.
 
@@ -60,7 +67,27 @@ Following the targets that can be used to test your changes locally.
 | make check-testdata | Checks if the testdata dir is updated with the latest changes | yes                  |
 | make test-e2e-local | Runs the CI e2e tests locally                                 | no                   |
 
-**NOTE** To use the `make lint` is required to install `golangci-lint` locally. More info: https://github.com/golangci/golangci-lint#install
+**NOTE** `make lint` requires a local installation of `golangci-lint`. More info: https://github.com/golangci/golangci-lint#install
+
+### Running e2e tests locally
+
+See that you can run `test-e2e-local` to setup Kind and run e2e tests locally.
+Another option is by manually starting up Kind and configuring it and then,
+you can for example via your IDEA debug the e2e tests.
+
+To manually setup run:
+
+```shell
+# To generate an Kubebuilder local binary with your changes
+make install
+# To create the cluster and configure a CNI which supports NetworkPolicy
+kind create cluster --config ./test/e2e/kind-config.yaml
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+```
+
+Now, you can for example, run in debug mode the `test/e2e/v4/e2e_suite_test.go`:
+
+![example](https://github.com/kubernetes-sigs/kubebuilder/assets/7708031/277d26d5-c94d-41f0-8f02-1381458ef750)
 
 ### Test Plugin
 
@@ -82,7 +109,7 @@ To fully test the proposed plugin:
 3. Create `generate_test.go` ([ref](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/test/e2e/v4/generate_test.go)). That should:
    - Introduce/Receive a `TextContext` instance
    - Trigger the plugin's bound subcommands. See [Init](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/test/e2e/utils/test_context.go#L213), [CreateAPI](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.6.0/test/e2e/utils/test_context.go#L222)
-   - Use [PluginUtil](https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/pkg/plugin/util) to verify the scaffolded outputs. See [InsertCode](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/pkg/plugin/util/util.go#L67), [ReplaceInFile](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.6.0/pkg/plugin/util/util.go#L196), [UncommendCode](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.6.0/pkg/plugin/util/util.go#L86)
+   - Use [PluginUtil](https://pkg.go.dev/sigs.k8s.io/kubebuilder/v4/pkg/plugin/util) to verify the scaffolded outputs. See [InsertCode](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/pkg/plugin/util/util.go#L67), [ReplaceInFile](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.6.0/pkg/plugin/util/util.go#L196), [UncommendCode](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.6.0/pkg/plugin/util/util.go#L86)
 4. Create `plugin_cluster_test.go` ([ref](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/test/e2e/v4/plugin_cluster_test.go)). That should:
 
    - 4.1. Setup testing environment, e.g:
@@ -96,7 +123,7 @@ To fully test the proposed plugin:
 
      - Execute commands in your `Makefile`. See [Make](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/test/e2e/utils/test_context.go#L240)
      - Temporary load image of the testing controller. See [LoadImageToKindCluster](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/test/e2e/utils/test_context.go#L283)
-     - Call Kubectl to validate running resources. See [utils.Kubectl](https://pkg.go.dev/sigs.k8s.io/kubebuilder/v3/test/e2e/utils#Kubectl)
+     - Call Kubectl to validate running resources. See [utils.Kubectl](https://pkg.go.dev/sigs.k8s.io/kubebuilder/v4/test/e2e/utils#Kubectl)
 
    - 4.4. Delete temporary resources after testing exited, e.g:
      - Uninstall prerequisites CRDs: See [UninstallPrometheusOperManager](https://github.com/kubernetes-sigs/kubebuilder/blob/v3.7.0/test/e2e/utils/test_context.go#L183)
@@ -163,7 +190,8 @@ separately.
 
 The docs are published off of three branches:
 
-- `book-v3`: [book.kubebuilder.io](https://book.kubebuilder.io) -- current docs
+- `book-v4`: [book.kubebuilder.io](https://book.kubebuilder.io) -- current docs
+- `book-v3`: [book-v3.book.kubebuilder.io](https://book-v3.book.kubebuilder.io) -- legacy docs
 - `book-v2`: [book-v2.book.kubebuilder.io](https://book-v2.book.kubebuilder.io) -- legacy docs
 - `book-v1`: [book-v1.book.kubebuilder.io](https://book-v1.book.kubebuilder.io) -- legacy docs
 - `master`: [master.book.kubebuilder.io](https://master.book.kubebuilder.io) -- "nightly" docs
@@ -198,3 +226,4 @@ Participation in the Kubernetes community is governed by the [Kubernetes Code of
 [golangci]: https://github.com/golangci/golangci-lint
 [kind]: https://kind.sigs.k8s.io/#installation-and-usage
 [setup-envtest]: https://book.kubebuilder.io/reference/envtest
+[k8s-contrubutiong-guide]: https://www.kubernetes.dev/docs/guide/contributing/

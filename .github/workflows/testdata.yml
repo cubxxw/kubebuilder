@@ -1,6 +1,5 @@
 name: Testdata verification
 
-# Trigger the workflow on pull requests and direct pushes to any branch
 on:
   push:
   pull_request:
@@ -16,9 +15,9 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@v4
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: '~1.20'
+          go-version-file: go.mod
       - name: Remove pre-installed kustomize
         # This step is needed as the following one tries to remove
         # kustomize for each test but has no permission to do so

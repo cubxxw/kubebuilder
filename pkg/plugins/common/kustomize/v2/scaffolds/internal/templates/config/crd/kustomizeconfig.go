@@ -19,7 +19,7 @@ package crd
 import (
 	"path/filepath"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"sigs.k8s.io/kubebuilder/v4/pkg/machinery"
 )
 
 var _ machinery.Template = &KustomizeConfig{}
@@ -30,7 +30,7 @@ type KustomizeConfig struct {
 	machinery.ResourceMixin
 }
 
-// SetTemplateDefaults implements file.Template
+// SetTemplateDefaults implements machinery.Template
 func (f *KustomizeConfig) SetTemplateDefaults() error {
 	if f.Path == "" {
 		f.Path = filepath.Join("config", "crd", "kustomizeconfig.yaml")
@@ -48,23 +48,15 @@ nameReference:
   version: v1
   fieldSpecs:
   - kind: CustomResourceDefinition
-    version: {{ .Resource.API.CRDVersion }}
+    version: v1
     group: apiextensions.k8s.io
-    {{- if ne .Resource.API.CRDVersion "v1" }}
-    path: spec/conversion/webhookClientConfig/service/name
-    {{- else }}
     path: spec/conversion/webhook/clientConfig/service/name
-    {{- end }}
 
 namespace:
 - kind: CustomResourceDefinition
-  version: {{ .Resource.API.CRDVersion }}
+  version: v1
   group: apiextensions.k8s.io
-  {{- if ne .Resource.API.CRDVersion "v1" }}
-  path: spec/conversion/webhookClientConfig/service/namespace
-  {{- else }}
   path: spec/conversion/webhook/clientConfig/service/namespace
-  {{- end }}
   create: false
 
 varReference:

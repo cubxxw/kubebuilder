@@ -5,6 +5,21 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
   - apps
   resources:
   - deployments
@@ -26,6 +41,32 @@ rules:
   - apps
   resources:
   - deployments/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cert-manager.io
+  resources:
+  - certificates/status
   verbs:
   - get
   - patch
@@ -57,7 +98,40 @@ rules:
   - patch
   - update
 - apiGroups:
+  - example.com.testproject.org
+  resources:
+  - busyboxes
+  - memcacheds
+  - wordpresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - example.com.testproject.org
+  resources:
+  - busyboxes/finalizers
+  - memcacheds/finalizers
+  - wordpresses/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - example.com.testproject.org
+  resources:
+  - busyboxes/status
+  - memcacheds/status
+  - wordpresses/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - fiz.testproject.org
+  - foo.testproject.org
   resources:
   - bars
   verbs:
@@ -70,12 +144,14 @@ rules:
   - watch
 - apiGroups:
   - fiz.testproject.org
+  - foo.testproject.org
   resources:
   - bars/finalizers
   verbs:
   - update
 - apiGroups:
   - fiz.testproject.org
+  - foo.testproject.org
   resources:
   - bars/status
   verbs:
@@ -109,60 +185,9 @@ rules:
   - patch
   - update
 - apiGroups:
-  - foo.testproject.org
-  resources:
-  - bars
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - foo.testproject.org
-  resources:
-  - bars/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - foo.testproject.org
-  resources:
-  - bars/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - sea-creatures.testproject.org
   resources:
   - krakens
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - sea-creatures.testproject.org
-  resources:
-  - krakens/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - sea-creatures.testproject.org
-  resources:
-  - krakens/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - sea-creatures.testproject.org
-  resources:
   - leviathans
   verbs:
   - create
@@ -175,12 +200,14 @@ rules:
 - apiGroups:
   - sea-creatures.testproject.org
   resources:
+  - krakens/finalizers
   - leviathans/finalizers
   verbs:
   - update
 - apiGroups:
   - sea-creatures.testproject.org
   resources:
+  - krakens/status
   - leviathans/status
   verbs:
   - get
@@ -190,57 +217,7 @@ rules:
   - ship.testproject.org
   resources:
   - cruisers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ship.testproject.org
-  resources:
-  - cruisers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ship.testproject.org
-  resources:
-  - cruisers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ship.testproject.org
-  resources:
   - destroyers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ship.testproject.org
-  resources:
-  - destroyers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ship.testproject.org
-  resources:
-  - destroyers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ship.testproject.org
-  resources:
   - frigates
   verbs:
   - create
@@ -253,39 +230,17 @@ rules:
 - apiGroups:
   - ship.testproject.org
   resources:
+  - cruisers/finalizers
+  - destroyers/finalizers
   - frigates/finalizers
   verbs:
   - update
 - apiGroups:
   - ship.testproject.org
   resources:
+  - cruisers/status
+  - destroyers/status
   - frigates/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - testproject.org
-  resources:
-  - lakers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - testproject.org
-  resources:
-  - lakers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - testproject.org
-  resources:
-  - lakers/status
   verbs:
   - get
   - patch

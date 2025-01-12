@@ -18,50 +18,62 @@ package main
 
 import (
 	log "github.com/sirupsen/logrus"
-
-	componentconfig "sigs.k8s.io/kubebuilder/v3/hack/docs/internal/component-config-tutorial"
-	cronjob "sigs.k8s.io/kubebuilder/v3/hack/docs/internal/cronjob-tutorial"
+	cronjob "sigs.k8s.io/kubebuilder/v4/hack/docs/internal/cronjob-tutorial"
+	gettingstarted "sigs.k8s.io/kubebuilder/v4/hack/docs/internal/getting-started"
+	multiversion "sigs.k8s.io/kubebuilder/v4/hack/docs/internal/multiversion-tutorial"
 )
 
-// Make sure executing `build_kb` to generate kb executable from the source code
+// KubebuilderBinName make sure executing `build_kb` to generate kb executable from the source code
 const KubebuilderBinName = "/tmp/kubebuilder/bin/kubebuilder"
 
+type tutorialGenerator interface {
+	Prepare()
+	GenerateSampleProject()
+	UpdateTutorial()
+	CodeGen()
+}
+
 func main() {
+	type generator func()
+
+	tutorials := map[string]generator{
+		"cronjob":         updateCronjobTutorial,
+		"getting-started": updateGettingStarted,
+		"multiversion":    updateMultiversionTutorial,
+	}
+
 	log.SetFormatter(&log.TextFormatter{DisableTimestamp: true})
 	log.Println("Generating documents...")
 
-	log.Println("Generating component-config tutorial...")
-	UpdateComponentConfigTutorial()
-
-	log.Println("Generating cronjob tutorial...")
-	UpdateCronjobTutorial()
-	// TODO: Generate multiversion-tutorial
+	for tutorial, updater := range tutorials {
+		log.Printf("Generating %s tutorial\n", tutorial)
+		updater()
+	}
 }
 
-func UpdateComponentConfigTutorial() {
-	binaryPath := KubebuilderBinName
-	samplePath := "docs/book/src/component-config-tutorial/testdata/project/"
-
-	sp := componentconfig.NewSample(binaryPath, samplePath)
-
-	sp.Prepare()
-
-	sp.GenerateSampleProject()
-
-	sp.UpdateTutorial()
-
-	sp.CodeGen()
+func updateTutorial(generator tutorialGenerator) {
+	generator.Prepare()
+	generator.GenerateSampleProject()
+	generator.UpdateTutorial()
+	generator.CodeGen()
 }
 
-func UpdateCronjobTutorial() {
-	binaryPath := KubebuilderBinName
+func updateCronjobTutorial() {
 	samplePath := "docs/book/src/cronjob-tutorial/testdata/project/"
+	sp := cronjob.NewSample(KubebuilderBinName, samplePath)
+	updateTutorial(&sp)
+}
 
-	sp := cronjob.NewSample(binaryPath, samplePath)
+func updateGettingStarted() {
+	samplePath := "docs/book/src/getting-started/testdata/project"
+	sp := gettingstarted.NewSample(KubebuilderBinName, samplePath)
+	updateTutorial(&sp)
+}
 
-	sp.Prepare()
-
-	sp.GenerateSampleProject()
-
-	sp.UpdateTutorial()
+func updateMultiversionTutorial() {
+	samplePath := "docs/book/src/multiversion-tutorial/testdata/project"
+	sp := cronjob.NewSample(KubebuilderBinName, samplePath)
+	updateTutorial(&sp)
+	multi := multiversion.NewSample(KubebuilderBinName, samplePath)
+	updateTutorial(&multi)
 }

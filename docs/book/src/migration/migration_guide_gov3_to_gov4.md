@@ -14,9 +14,9 @@ project that looks like a native go/v4 project layout (latest version).
 <h1>Your Upgrade Assistant: The `alpha generate` command</h1>
 
 To upgrade your project you might want to use the command `kubebuilder alpha generate [OPTIONS]`.
-This command will re-scaffold the project using the current Kubebuilder version. 
-You can run `kubebuilder alpha generate --plugins=go/v4` to regenerate your project using `go/v4` 
-based in your [PROJECT][project-file] file config. 
+This command will re-scaffold the project using the current Kubebuilder version.
+You can run `kubebuilder alpha generate --plugins=go/v4` to regenerate your project using `go/v4`
+based in your [PROJECT][project-file] file config. ([More info](./../reference/rescaffold.md))
 
 </aside>
 
@@ -103,7 +103,7 @@ These files have not been modified by the new plugin, so you should be able to r
 
 ### Migrate the Controllers
 
-Now, let's migrate the controller code from `controllers/cronjob_controller.go` in our old project to the new one.
+Now, let's migrate the controller code from `controllers/cronjob_controller.go` in our old project to `internal/controller/cronjob_controller.go` in the new one.
 
 ## Migrate the Webhooks
 
@@ -130,10 +130,10 @@ If there are any manual updates in `main.go` in v3, we need to port the changes 
 
 If there are additional manifests added under config directory, port them as well. Please, be aware that
 the new version go/v4 uses Kustomize v5x and no longer Kustomize v4. Therefore, if added customized
-implementations in the config you need to ensure that them can work with Kustomize v5 and/if not
+implementations in the config you need to ensure that they can work with Kustomize v5 and if not
 update/upgrade any breaking change that you might face.
 
-In v4, installation of Kustomize has been changed from bash script to `go get`. Change the `kustomize` dependency in Makefile to 
+In v4, installation of Kustomize has been changed from bash script to `go get`. Change the `kustomize` dependency in Makefile to
 ```
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. If wrong version is installed, it will be removed before downloading.

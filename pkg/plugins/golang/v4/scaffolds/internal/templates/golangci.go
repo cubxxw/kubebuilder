@@ -17,7 +17,7 @@ limitations under the License.
 package templates
 
 import (
-	"sigs.k8s.io/kubebuilder/v3/pkg/machinery"
+	"sigs.k8s.io/kubebuilder/v4/pkg/machinery"
 )
 
 var _ machinery.Template = &Golangci{}
@@ -28,7 +28,7 @@ type Golangci struct {
 	machinery.ProjectNameMixin
 }
 
-// SetTemplateDefaults implements file.Template
+// SetTemplateDefaults implements machinery.Template
 func (f *Golangci) SetTemplateDefaults() error {
 	if f.Path == "" {
 		f.Path = ".golangci.yml"
@@ -41,9 +41,8 @@ func (f *Golangci) SetTemplateDefaults() error {
 	return nil
 }
 
-//nolint:lll
 const golangciTemplate = `run:
-  deadline: 5m
+  timeout: 5m
   allow-parallel-runners: true
 
 issues:
@@ -65,7 +64,8 @@ linters:
   enable:
     - dupl
     - errcheck
-    - exportloopref
+    - copyloopvar
+    - ginkgolinter
     - goconst
     - gocyclo
     - gofmt
@@ -77,9 +77,15 @@ linters:
     - misspell
     - nakedret
     - prealloc
+    - revive
     - staticcheck
     - typecheck
     - unconvert
     - unparam
     - unused
+
+linters-settings:
+  revive:
+    rules:
+      - name: comment-spacings
 `

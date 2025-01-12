@@ -22,8 +22,8 @@ import (
 
 	"sigs.k8s.io/yaml"
 
-	"sigs.k8s.io/kubebuilder/v3/pkg/config"
-	"sigs.k8s.io/kubebuilder/v3/pkg/model/resource"
+	"sigs.k8s.io/kubebuilder/v4/pkg/config"
+	"sigs.k8s.io/kubebuilder/v4/pkg/model/resource"
 )
 
 // Version is the config.Version for project configuration 3
@@ -52,6 +52,7 @@ func (ss *stringSlice) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Cfg defines the Project Config (PROJECT file)
 type Cfg struct {
 	// Version
 	Version config.Version `json:"version"`
@@ -63,8 +64,7 @@ type Cfg struct {
 	PluginChain stringSlice `json:"layout,omitempty"`
 
 	// Boolean fields
-	MultiGroup      bool `json:"multigroup,omitempty"`
-	ComponentConfig bool `json:"componentConfig,omitempty"`
+	MultiGroup bool `json:"multigroup,omitempty"`
 
 	// Resources
 	Resources []resource.Resource `json:"resources,omitempty"`
@@ -154,23 +154,6 @@ func (c *Cfg) ClearMultiGroup() error {
 	return nil
 }
 
-// IsComponentConfig implements config.Config
-func (c Cfg) IsComponentConfig() bool {
-	return c.ComponentConfig
-}
-
-// SetComponentConfig implements config.Config
-func (c *Cfg) SetComponentConfig() error {
-	c.ComponentConfig = true
-	return nil
-}
-
-// ClearComponentConfig implements config.Config
-func (c *Cfg) ClearComponentConfig() error {
-	c.ComponentConfig = false
-	return nil
-}
-
 // ResourcesLength implements config.Config
 func (c Cfg) ResourcesLength() int {
 	return len(c.Resources)
@@ -178,13 +161,15 @@ func (c Cfg) ResourcesLength() int {
 
 // HasResource implements config.Config
 func (c Cfg) HasResource(gvk resource.GVK) bool {
+	found := false
 	for _, res := range c.Resources {
 		if gvk.IsEqualTo(res.GVK) {
-			return true
+			found = true
+			break
 		}
 	}
 
-	return false
+	return found
 }
 
 // GetResource implements config.Config
@@ -346,7 +331,7 @@ func (c *Cfg) EncodePluginConfig(key string, configObj interface{}) error {
 	return nil
 }
 
-// Marshal implements config.Config
+// MarshalYAML implements config.Config
 func (c Cfg) MarshalYAML() ([]byte, error) {
 	for i, r := range c.Resources {
 		// If API is empty, omit it (prevents `api: {}`).
@@ -367,7 +352,7 @@ func (c Cfg) MarshalYAML() ([]byte, error) {
 	return content, nil
 }
 
-// Unmarshal implements config.Config
+// UnmarshalYAML implements config.Config
 func (c *Cfg) UnmarshalYAML(b []byte) error {
 	if err := yaml.UnmarshalStrict(b, c); err != nil {
 		return config.UnmarshalError{Err: err}

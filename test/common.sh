@@ -23,14 +23,17 @@ function convert_to_tools_ver {
   # 1.14-1.19 work with the 1.19 server bins and kubectl.
   "1.14"|"1.15"|"1.16"|"1.17"|"1.18"|"1.19") echo "1.19.2";;
   # Tests in 1.20 and 1.21 with their counterpart version's apiserver.
-  "1.20"|"1.21") echo "1.19.2";;
+  "1.20"|"1.21") echo "1.21.5";;
   "1.22") echo "1.22.1";;
   "1.23") echo "1.23.3";;
   "1.24") echo "1.24.1";;
   "1.25") echo "1.25.0";;
   "1.26") echo "1.26.0";;
   "1.27") echo "1.27.1";;
-  "1.28") echo "1.28.0";;
+  "1.28") echo "1.28.3";;
+  "1.29") echo "1.29.0";;
+  "1.30") echo "1.30.0";;
+  "1.31") echo "1.31.0";;
   *)
     echo "k8s version $k8s_ver not supported"
     exit 1
@@ -50,9 +53,9 @@ if [ -n "$TRACE" ]; then
   set -x
 fi
 
-export KIND_K8S_VERSION="${KIND_K8S_VERSION:-"v1.28.0"}"
+export KIND_K8S_VERSION="${KIND_K8S_VERSION:-"v1.31.0"}"
 tools_k8s_version=$(convert_to_tools_ver "${KIND_K8S_VERSION#v*}")
-kind_version=0.15.0
+kind_version=0.22.0
 goarch=amd64
 
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
@@ -114,7 +117,16 @@ function fetch_tools {
   if ! is_installed setup-envtest; then
     header_text "Installing setup-envtest to $(go env GOPATH)/bin"
 
-    go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+    # TODO: Current workaround for setup-envtest compatibility
+    # Due to past instances where controller-runtime maintainers released
+    # versions without corresponding branches, directly relying on branches
+    # poses a risk of breaking the Kubebuilder chain. Such practices may
+    # change over time, potentially leading to compatibility issues. This
+    # approach, although not ideal, remains the best solution for ensuring
+    # compatibility with controller-runtime releases as of now. For more
+    # details on the quest for a more robust solution, refer to the issue
+    # raised in the controller-runtime repository: https://github.com/kubernetes-sigs/controller-runtime/issues/2744
+    go install sigs.k8s.io/controller-runtime/tools/setup-envtest@release-0.19
   fi
 
   if [ -z "$SKIP_FETCH_TOOLS" ]; then
