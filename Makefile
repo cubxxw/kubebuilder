@@ -127,7 +127,7 @@ yamllint:
 GOLANGCI_LINT = $(shell pwd)/bin/golangci-lint
 golangci-lint:
 	@[ -f $(GOLANGCI_LINT) ] || { \
-	GOBIN=$(shell pwd)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.0.2  ;\
+	GOBIN=$(shell pwd)/bin go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.0  ;\
 	}
 
 .PHONY: apidiff
@@ -183,6 +183,11 @@ test-book: ## Run the cronjob tutorial's unit tests to make sure we don't break 
 .PHONY: test-license
 test-license:  ## Run the license check
 	./test/check-license.sh
+
+.PHONY: test-external-plugin
+test-external-plugin: install  ## Run tests for external plugin
+	make -C docs/book/src/simple-external-plugin-tutorial/testdata/sampleexternalplugin/v1 install
+	make -C docs/book/src/simple-external-plugin-tutorial/testdata/sampleexternalplugin/v1 test-plugin
 
 .PHONY: test-spaces
 test-spaces:  ## Run the trailing spaces check
