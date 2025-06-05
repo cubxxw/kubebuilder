@@ -27,7 +27,7 @@ const unknown = "unknown"
 // information in the release process
 var (
 	kubeBuilderVersion      = unknown
-	kubernetesVendorVersion = "1.32.1"
+	kubernetesVendorVersion = "1.33.0"
 	goos                    = unknown
 	goarch                  = unknown
 	gitCommit               = "$Format:%H$" // sha1 from git, output of $(git rev-parse HEAD)
@@ -63,8 +63,8 @@ func versionString() string {
 	})
 }
 
-// GetKubebuilderVersion returns only the CLI version string
-func GetKubebuilderVersion() string {
+// getKubebuilderVersion returns only the CLI version string
+func getKubebuilderVersion() string {
 	if kubeBuilderVersion == unknown {
 		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
 			kubeBuilderVersion = info.Main.Version

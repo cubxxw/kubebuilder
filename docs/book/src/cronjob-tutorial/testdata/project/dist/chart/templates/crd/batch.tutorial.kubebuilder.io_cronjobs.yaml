@@ -9,7 +9,7 @@ metadata:
     {{- if .Values.crd.keep }}
     "helm.sh/resource-policy": keep
     {{- end }}
-    controller-gen.kubebuilder.io/version: v0.17.3
+    controller-gen.kubebuilder.io/version: v0.18.0
   name: cronjobs.batch.tutorial.kubebuilder.io
 spec:
   group: batch.tutorial.kubebuilder.io
@@ -846,6 +846,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -1556,6 +1558,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -2280,6 +2284,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:

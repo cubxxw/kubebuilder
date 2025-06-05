@@ -71,6 +71,17 @@ func (opts *Generate) Generate() error {
 				log.Error("Cleanup failed:", err)
 				return fmt.Errorf("cleanup failed: %w", err)
 			}
+
+			// Note that we should remove ALL files except the PROJECT file and .git directory
+			cleanupCmd = fmt.Sprintf(
+				`find %q -mindepth 1 -maxdepth 1 ! -name '.git' ! -name 'PROJECT' -exec rm -rf {} +`,
+				opts.OutputDir,
+			)
+			err = util.RunCmd("Running cleanup", "sh", "-c", cleanupCmd)
+			if err != nil {
+				log.Error("Cleanup failed:", err)
+				return fmt.Errorf("cleanup failed: %w", err)
+			}
 		}
 	}
 
@@ -104,7 +115,24 @@ func (opts *Generate) Generate() error {
 		}
 	}
 
-	return migrateDeployImagePlugin(projectConfig)
+	if err = migrateDeployImagePlugin(projectConfig); err != nil {
+		return fmt.Errorf("error migrating deploy-image plugin: %w", err)
+	}
+
+	// Run make targets to ensure the project is properly set up.
+	// These steps are performed on a best-effort basis: if any of the targets fail,
+	// we log a warning to inform the user, but we do not stop the process or return an error.
+	// This is to avoid blocking the migration flow due to non-critical issues during setup.
+	targets := []string{"manifests", "generate", "fmt", "vet", "lint-fix"}
+	for _, target := range targets {
+		log.Infof("Running: make %s", target)
+		err := util.RunCmd(fmt.Sprintf("Running make %s", target), "make", target)
+		if err != nil {
+			log.Warnf("make %s failed: %v", target, err)
+		}
+	}
+
+	return nil
 }
 
 // Validate ensures the options are valid and kubebuilder is installed.

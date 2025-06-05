@@ -12,7 +12,7 @@ metadata:
     {{- if .Values.crd.keep }}
     "helm.sh/resource-policy": keep
     {{- end }}
-    controller-gen.kubebuilder.io/version: v0.17.3
+    controller-gen.kubebuilder.io/version: v0.18.0
   name: cronjobs.batch.tutorial.kubebuilder.io
 spec:
   {{- if .Values.webhook.enable }}
@@ -22,7 +22,7 @@ spec:
       clientConfig:
         service:
           namespace: {{ .Release.Namespace }}
-          name: webhook-service
+          name: project-webhook-service
           path: /convert
       conversionReviewVersions:
       - v1
@@ -861,6 +861,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -1571,6 +1573,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -2295,6 +2299,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -4686,6 +4692,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -5396,6 +5404,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
@@ -6120,6 +6130,8 @@ spec:
                                               - port
                                               type: object
                                           type: object
+                                        stopSignal:
+                                          type: string
                                       type: object
                                     livenessProbe:
                                       properties:
