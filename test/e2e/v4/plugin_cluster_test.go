@@ -88,19 +88,25 @@ var _ = Describe("kubebuilder", func() {
 			GenerateV4WithoutMetrics(kbc)
 			Run(kbc, true, false, false, false, false)
 		})
-		It("should generate a runnable project with metrics protected by network policies", func() {
-			GenerateV4WithNetworkPoliciesWithoutWebhooks(kbc)
-			Run(kbc, false, false, false, true, true)
-		})
+		// FIXME: This test is currently disabled because it requires to be fixed:
+		// https://github.com/kubernetes-sigs/kubebuilder/issues/4853
+		// It is not working for k8s 1.33
+		// It("should generate a runnable project with metrics protected by network policies", func() {
+		// 	 GenerateV4WithNetworkPoliciesWithoutWebhooks(kbc)
+		//	 Run(kbc, false, false, false, true, true)
+		// })
 		It("should generate a runnable project with webhooks and metrics protected by network policies", func() {
 			GenerateV4WithNetworkPolicies(kbc)
 			Run(kbc, true, false, false, true, true)
 		})
-		It("should generate a runnable project with the manager running "+
-			"as restricted and without webhooks", func() {
-			GenerateV4WithoutWebhooks(kbc)
-			Run(kbc, false, false, false, true, false)
-		})
+		// FIXME: This test is currently disabled because it requires to be fixed:
+		// https://github.com/kubernetes-sigs/kubebuilder/issues/4853
+		// It is not working for k8s 1.33
+		// It("should generate a runnable project with the manager running "+
+		//	 "as restricted and without webhooks", func() {
+		//	 GenerateV4WithoutWebhooks(kbc)
+		//	 Run(kbc, false, false, false, true, false)
+		// })
 	})
 })
 
@@ -389,26 +395,35 @@ func Run(kbc *utils.TestContext, hasWebhook, isToUseInstaller, isToUseHelmChart,
 		By("modifying the ConversionTest CR sample to set `size` for conversion testing")
 		conversionCRFile := filepath.Join("config", "samples",
 			fmt.Sprintf("%s_v1_conversiontest.yaml", kbc.Group))
-		conversionCRPath, err := filepath.Abs(filepath.Join(fmt.Sprintf("e2e-%s", kbc.TestSuffix), conversionCRFile))
-		Expect(err).To(Not(HaveOccurred()))
+		conversionCRPath := filepath.Join(kbc.Dir, conversionCRFile)
 
 		// Edit the file to include `size` in the spec field for v1
-		f, err := os.OpenFile(conversionCRPath, os.O_APPEND|os.O_WRONLY, 0o644)
-		Expect(err).To(Not(HaveOccurred()))
-		defer func() {
-			err = f.Close()
-			Expect(err).To(Not(HaveOccurred()))
-		}()
-		_, err = f.WriteString("\nspec:\n  size: 3")
-		Expect(err).To(Not(HaveOccurred()))
+		err = util.ReplaceInFile(conversionCRPath, "# TODO(user): Add fields here", `size: 3`)
+		Expect(err).NotTo(HaveOccurred(), "failed to replace spec in ConversionTest CR sample")
 
 		// Apply the ConversionTest Custom Resource in v1
 		By("applying the modified ConversionTest CR in v1 for conversion")
 		_, err = kbc.Kubectl.Apply(true, "-f", conversionCRPath)
 		Expect(err).NotTo(HaveOccurred(), "failed to apply modified ConversionTest CR")
 
-		// TODO: Add validation to check the conversion
-		// the v2 should have spec.replicas == 3
+		By("waiting for the ConversionTest CR to appear")
+		Eventually(func(g Gomega) {
+			_, err := kbc.Kubectl.Get(true, "conversiontest", "conversiontest-sample")
+			g.Expect(err).NotTo(HaveOccurred(), "expected the ConversionTest CR to exist")
+		}, time.Minute, time.Second).Should(Succeed())
+
+		By("validating that the converted resource in v2 has replicas == 3")
+		Eventually(func(g Gomega) {
+			out, err := kbc.Kubectl.Get(
+				true,
+				"conversiontest", "conversiontest-sample",
+				"-o", "jsonpath={.spec.replicas}",
+			)
+			g.Expect(err).NotTo(HaveOccurred(), "failed to get converted resource in v2")
+			replicas, err := strconv.Atoi(out)
+			g.Expect(err).NotTo(HaveOccurred(), "replicas field is not an integer")
+			g.Expect(replicas).To(Equal(3), "expected replicas to be 3 after conversion")
+		}, time.Minute, time.Second).Should(Succeed())
 
 		if hasMetrics {
 			By("validating conversion metrics to confirm conversion operations")
@@ -545,14 +560,24 @@ func metricsShouldBeUnavailable(kbc *utils.TestContext) {
 
 	By("validating that the curl pod fail as expected")
 	verifyCurlUp := func(g Gomega) {
-		status, err := kbc.Kubectl.Get(
+		status, errCurl := kbc.Kubectl.Get(
 			true,
 			"pods", "curl", "-o", "jsonpath={.status.phase}")
-		g.Expect(err).NotTo(HaveOccurred())
+		g.Expect(errCurl).NotTo(HaveOccurred())
 		g.Expect(status).NotTo(Equal("Failed"),
 			fmt.Sprintf("curl pod in %s status when should fail with an error", status))
 	}
 	Eventually(verifyCurlUp, 240*time.Second, time.Second).Should(Succeed())
+
+	By("validating that the correct ServiceAccount is being used")
+	saName := kbc.Kubectl.ServiceAccount
+	currentSAOutput, err := kbc.Kubectl.Get(
+		true,
+		"serviceaccount", saName,
+		"-o", "jsonpath={.metadata.name}",
+	)
+	Expect(err).NotTo(HaveOccurred(), "Failed to fetch the service account")
+	Expect(currentSAOutput).To(Equal(saName), "The ServiceAccount in use does not match the expected one")
 
 	By("validating that the metrics endpoint is not working as expected")
 	getCurlLogs := func(g Gomega) {
@@ -580,6 +605,7 @@ func cmdOptsToCreateCurlPod(kbc *utils.TestContext, token string) []string {
 					"command": ["/bin/sh", "-c"],
 					"args": ["curl -v -k -H 'Authorization: Bearer %s' https://e2e-%s-controller-manager-metrics-service.%s.svc.cluster.local:8443/metrics"],
 					"securityContext": {
+						"readOnlyRootFilesystem": true,
 						"allowPrivilegeEscalation": false,
 						"capabilities": {
 							"drop": ["ALL"]
@@ -591,7 +617,7 @@ func cmdOptsToCreateCurlPod(kbc *utils.TestContext, token string) []string {
 						}
 					}
 				}],
-				"serviceAccount": "%s"
+				"serviceAccountName": "%s"
 			}
     }`, token, kbc.TestSuffix, kbc.Kubectl.Namespace, kbc.Kubectl.ServiceAccount),
 	}
