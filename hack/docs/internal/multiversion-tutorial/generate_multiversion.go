@@ -103,7 +103,6 @@ func (sp *Sample) UpdateTutorial() {
 	sp.updateConversionFiles()
 	sp.updateSampleV2()
 	sp.updateMain()
-	sp.updateDefaultKustomize()
 }
 
 func (sp *Sample) updateCronjobV1DueForce() {
@@ -281,20 +280,6 @@ interfaces, a conversion webhook will be registered.
 	hackutils.CheckError("fix cronjob v1 tests after each", err)
 }
 
-func (sp *Sample) updateDefaultKustomize() {
-	// Enable CA for Conversion Webhook
-	err := pluginutil.UncommentCode(
-		filepath.Join(sp.ctx.Dir, "config/default/kustomization.yaml"),
-		caInjectionNamespace, `#`)
-	hackutils.CheckError("fixing default/kustomization", err)
-
-	// Enable CA for Conversion Webhook
-	err = pluginutil.UncommentCode(
-		filepath.Join(sp.ctx.Dir, "config/default/kustomization.yaml"),
-		caInjectionCert, `#`)
-	hackutils.CheckError("fixing default/kustomization", err)
-}
-
 func (sp *Sample) updateSampleV2() {
 	path := filepath.Join(sp.ctx.Dir, "config/samples/batch_v2_cronjob.yaml")
 	oldText := `# TODO(user): Add fields here`
@@ -355,12 +340,22 @@ methods to convert to/from the hub version.
 	hackutils.CheckError("adding comment to hub v2", err)
 
 	err = pluginutil.ReplaceInFile(path,
-		"// TODO(user): Implement conversion logic from v2 to v1",
+		`// TODO(user): Implement conversion logic from v2 to v1
+	// Example: Copying Spec fields
+	// dst.Spec.Size = src.Spec.Replicas
+
+	// Copy ObjectMeta to preserve name, namespace, labels, etc.
+	dst.ObjectMeta = src.ObjectMeta`,
 		hubV2CovertTo)
 	hackutils.CheckError("replace covertTo at hub v2", err)
 
 	err = pluginutil.ReplaceInFile(path,
-		"// TODO(user): Implement conversion logic from v1 to v2",
+		`// TODO(user): Implement conversion logic from v1 to v2
+	// Example: Copying Spec fields
+	// dst.Spec.Replicas = src.Spec.Size
+
+	// Copy ObjectMeta to preserve name, namespace, labels, etc.
+	dst.ObjectMeta = src.ObjectMeta`,
 		hubV2ConvertFromCode)
 	hackutils.CheckError("replace covert from at hub v2", err)
 
