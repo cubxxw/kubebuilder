@@ -1,0 +1,324 @@
+# Instincts generated from https://github.com/cubxxw/kubebuilder
+# Generated: 2026-05-01T08:43:36.795Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: kubebuilder-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/cubxxw/kubebuilder
+---
+
+# Kubebuilder Commit Length
+
+## Action
+
+Write moderate-length commit messages (~99 characters)
+
+## Evidence
+
+- Average commit message length: 99 chars
+- Based on 2 commits
+
+---
+id: kubebuilder-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/cubxxw/kubebuilder
+---
+
+# Kubebuilder Naming Files
+
+## Action
+
+Use snake_case naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: snake_case
+
+---
+id: kubebuilder-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/cubxxw/kubebuilder
+---
+
+# Kubebuilder Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: kubebuilder-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/cubxxw/kubebuilder
+---
+
+# Kubebuilder Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: kubebuilder-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/cubxxw/kubebuilder
+---
+
+# Kubebuilder Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: kubebuilder-workflow-upgrade-k8s-or-controller-runtime-dependencies
+trigger: "when doing upgrade k8s or controller runtime dependencies"
+confidence: 0.55
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/cubxxw/kubebuilder
+---
+
+# Kubebuilder Workflow Upgrade K8s Or Controller Runtime Dependencies
+
+## Action
+
+Follow the upgrade-k8s-or-controller-runtime-dependencies workflow:
+1. Update go.mod and go.sum in each testdata and tutorial project to the new dependency versions.
+2. Update CRD YAMLs and generated files (e.g., deepcopy.go) to match new API versions or codegen output.
+3. Update main.go and controller files if API or dependency changes require code adjustments.
+4. Regenerate or update any charts, install manifests, or other deployment artifacts.
+5. Update scaffolding templates if necessary to support the new versions.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~1x per month
+- Files: **/go.mod, **/go.sum, **/api/**/groupversion_info.go
+
+---
+id: kubebuilder-instinct-file-naming
+trigger: "When creating a new Go source file"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct File Naming
+
+## Action
+
+Name the file using snake_case (e.g., my_file.go)
+
+## Evidence
+
+- Pattern in files: pkg/, testdata/, docs/
+
+---
+id: kubebuilder-instinct-function-naming
+trigger: "When defining a new function in Go"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Function Naming
+
+## Action
+
+Use camelCase for function names (e.g., doSomething)
+
+## Evidence
+
+- Pattern in: **/*.go
+
+---
+id: kubebuilder-instinct-class-naming
+trigger: "When defining a new struct or type that acts as a class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Class Naming
+
+## Action
+
+Use PascalCase for class/type names (e.g., MyController)
+
+## Evidence
+
+- Pattern in: **/*.go
+
+---
+id: kubebuilder-instinct-constant-naming
+trigger: "When defining a constant in Go"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Constant Naming
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names (e.g., MY_CONSTANT)
+
+## Evidence
+
+- Pattern in: **/*.go
+
+---
+id: kubebuilder-instinct-import-style
+trigger: "When importing packages in Go code"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Import Style
+
+## Action
+
+Use relative imports where possible
+
+## Evidence
+
+- Pattern in: **/*.go
+
+---
+id: kubebuilder-instinct-export-style
+trigger: "When exporting functions, types, or variables"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Export Style
+
+## Action
+
+Use named exports (explicitly export each symbol)
+
+## Evidence
+
+- Pattern in: **/*.go
+
+---
+id: kubebuilder-instinct-test-location
+trigger: "When writing tests for code in the repository"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Test Location
+
+## Action
+
+Place test files in a separate testdata directory or in *_test.go files alongside source files
+
+## Evidence
+
+- Pattern in: testdata/
+
+---
+id: kubebuilder-instinct-test-naming
+trigger: "When naming test functions in Go"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Test Naming
+
+## Action
+
+Prefix test function names with Test (e.g., TestMyFunction)
+
+## Evidence
+
+- Pattern in: *_test.go
+
+---
+id: kubebuilder-instinct-commit-format
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Commit Format
+
+## Action
+
+Use a freeform message, optionally with an emoji and a component in parentheses (e.g., 📖 (External Plugin Sample) Update ...)
+
+## Evidence
+
+- Seen in commit: 📖 (External Plugin Sample) Update k8s.io/apimachinery from  v0.35.4 to v0.36.0 (#5673)
+
+---
+id: kubebuilder-instinct-upgrade-k8s-deps
+trigger: "When upgrading the supported Kubernetes or controller-runtime version"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: cubxxw/kubebuilder
+---
+
+# Kubebuilder Instinct Upgrade K8s Deps
+
+## Action
+
+Update go.mod and go.sum in each testdata and tutorial project, update CRD YAMLs and generated files, adjust main.go and controllers if needed, regenerate deployment artifacts, and update scaffolding templates as necessary
+
+## Evidence
+
+- Workflow: upgrade-k8s-or-controller-runtime-dependencies
+- Pattern in files: **/go.mod, **/go.sum, **/api/**/groupversion_info.go, **/api/**/types.go, **/api/**/zz_generated.deepcopy.go, **/cmd/main.go, **/internal/controller/**/*.go, **/config/crd/bases/*.yaml, **/dist/chart/templates/crd/*.yaml, **/dist/install.yaml, pkg/plugins/golang/**/scaffolds/internal/templates/api/*.go
+- Seen in commit sequence: Update go.mod and go.sum..., Update CRD YAMLs..., etc.
+
